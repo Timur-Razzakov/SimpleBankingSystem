@@ -164,5 +164,5 @@ while True:
     elif choose_main == 2:
         log_into_account()
     if exit_main:
-        print("Bye.")
+        print("Bye!")
         break
