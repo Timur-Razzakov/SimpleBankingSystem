@@ -1,5 +1,6 @@
 import random
 import sqlite3
+
 conn = sqlite3.connect('card.s3db')
 cur = conn.cursor()
 cur.execute('''CREATE TABLE IF NOT EXISTS card(id INTEGER,number TEXT,
@@ -18,12 +19,13 @@ account_message = ['''
 
 cur.execute('SELECT * FROM card')
 cards_info = cur.fetchall()
-
+# number of accounts created
 a = 0
+
+
 def generate_account():
     global cards_info
     global bank_account_list
-    global balance
     global a
     balance = 0
     a += 1
@@ -31,16 +33,13 @@ def generate_account():
     card_number = card_number * 10 + luhn_checksum(card_number)
     pin = random.randint(1000, 9999)
     bank_account_list.update({card_number: {'pin': '{0:04d}'.format(pin), 'balance': 0}})
-    for_db = []
-    for_db.append(a)
-    for_db.append(card_number)
-    for_db.append(pin)
-    for_db.append(balance)
-    cur.execute('INSERT INTO card VALUES(?,?,?,?)',for_db)
+    for_db = [a, card_number, pin, balance]
+    cur.execute('INSERT INTO card VALUES(?,?,?,?)', for_db)
     conn.commit()
     cur.execute('SELECT * FROM card')
     cards_info = cur.fetchall()
     return card_number
+
 
 def create_account():
     print("Your card has been created")
@@ -60,12 +59,10 @@ def luhn_checksum(card_number):
     return 0 if _sum % 10 == 0 else 10 - _sum % 10
 
 
-
 def log_into_account():
     global cards_info
     global b
-    global spisok
-    spisok = []
+    #
     b = 0
     print("Enter your card number:")
     card_number = input()
@@ -74,23 +71,20 @@ def log_into_account():
     for i in range(len(cards_info)):
         if card_number in cards_info[b][1] and pin in cards_info[b][2]:
             print("You have successfully logged in!")
-            account_menue(card_number)
+            account_menu(card_number)
             return True
         else:
             b += 1
     print("Wrong card number or PIN!")
-    
 
 
-def account_menue(card_number):
+def account_menu(card_number):
     global exit_main
     global cards_info
-    c = 0
     for_delete = []
-    check_sum = 0
-    spisok = []
+    list_1 = []
     cards_number = []
-    for p in range(0,len(cards_info),1):
+    for p in range(0, len(cards_info), 1):
         cards_number.append(cards_info[p][1])
     while True:
         print('\n'.join(account_message))
@@ -103,23 +97,23 @@ def account_menue(card_number):
         elif choose_account == 2:
             print("Enter income:")
             income = int(input())
-            spisok.append(income)
-            spisok.append(card_number)
-            cur.execute('UPDATE card SET balance = balance+(?) WHERE number = (?)',spisok)
+            list_1.append(income)
+            list_1.append(card_number)
+            cur.execute('UPDATE card SET balance = balance+(?) WHERE number = (?)', list_1)
             conn.commit()
             print("Income was added!")
         elif choose_account == 3:
             print("Transfer\nEnter card number:")
             number = input()
             check_sum = 0
-            for i in range(0,len(number),2):
+            for i in range(0, len(number), 2):
                 check = int(number[i]) * 2
                 if check > 9:
                     check -= 9
                     check_sum += check
                 else:
                     check_sum += check
-            for m in range(1,len(number),2):
+            for m in range(1, len(number), 2):
                 check_sum += int(number[m])
             if check_sum % 10 != 0:
                 print("Probably you made mistake in the card number. Please try again!")
@@ -133,26 +127,24 @@ def account_menue(card_number):
                 if transfer > cards_info[b][3]:
                     print("Not enough money!")
                 else:
-                    spisok.append(transfer)
-                    spisok.append(number)
-                    cur.execute('UPDATE card SET balance = balance+(?) WHERE number = (?)',spisok)
+                    list_1.append(transfer)
+                    list_1.append(number)
+                    cur.execute('UPDATE card SET balance = balance+(?) WHERE number = (?)', list_1)
                     conn.commit()
-                    spisok = []
-                    spisok.append(transfer)
-                    spisok.append(cards_info[b][1])
-                    cur.execute('UPDATE card SET balance = balance - (?) WHERE number = (?)',spisok)
+                    list_1 = [transfer, cards_info[b][1]]
+                    cur.execute('UPDATE card SET balance = balance - (?) WHERE number = (?)', list_1)
                     conn.commit()
                     print("Success!")
         elif choose_account == 4:
             for_delete.append(card_number)
-            cur.execute('DELETE FROM card WHERE number = (?)',for_delete)
+            cur.execute('DELETE FROM card WHERE number = (?)', for_delete)
             conn.commit()
             print("The account has been closed!")
             return None
         elif choose_account == 5:
             print("You have successfully logged out!")
             return None
-                    
+
 
 while True:
     print('\n'.join(main_message))
