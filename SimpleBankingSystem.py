@@ -1,14 +1,14 @@
 import random
 import sqlite3
 
-conn = sqlite3.connect('card.s3db')
+conn = sqlite3.connect('Cards.s3db')
 cur = conn.cursor()
 cur.execute('''CREATE TABLE IF NOT EXISTS card(id INTEGER,number TEXT,
                                                 pin TEXT,balance INTEGER DEFAULT 0);''')
 conn.commit()
 bank_account_list = dict()
 exit_main = False
-main_message = ["1. Create an account", "2. Log into account", "0. Exit"]
+main_message = ["1-Create an account", "2-Log into account", "0-Exit"]
 account_message = ['''
 1. Balance
 2. Add income
